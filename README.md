@@ -4,6 +4,18 @@ A pure V implementation of the [OSC(Open Sound Control) 1.0](https://opensoundco
 
 Ported from [Okabintaro/nosc](https://github.com/Okabintaro/nosc)
 
+## Install
+
+```bash
+$ git clone https://github.com/funatsufumiya/vosc ~/.vmodules/vosc
+```
+
+## Tests
+
+```bash
+$ v test .
+```
+
 ## License
 
 see [LICENSE](./LICENSE).
