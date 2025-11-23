@@ -3,6 +3,8 @@
 
 module vosc
 
+import time
+
 // Types
 
 pub struct OscTime {
@@ -40,24 +42,6 @@ pub mut:
     status u8
     data1 u8
     data2 u8
-}
-
-pub enum OscType {
-    osc_float
-    osc_int
-    osc_string
-    osc_blob
-    osc_true
-    osc_false
-    osc_nil
-    osc_inf
-    osc_array
-    osc_time
-    osc_bigint
-    osc_double
-    osc_char
-    osc_color
-    osc_midi
 }
 
 pub struct OscBigIntValue {
