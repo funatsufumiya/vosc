@@ -250,6 +250,7 @@ pub fn read_osc_midi(payload []u8, i int) !(OscMidi, int) {
     return result, i + 4
 }
 
+// Read arguments from payload, returns value and next_index, next_tag_index
 pub fn read_arguments(payload []u8, type_tags string, i int, j int, depth int) !([]OscValue, int, int) {
     max_array_depth := 64
     mut args := []OscValue{}
