@@ -19,13 +19,11 @@ const osc_time_immediate = OscTime{
 }
 
 fn fraction_to_nano(fraction u32) u32 {
-    frac := (f64(fraction) * 1_000_000_000.0) / f64(1 << 32)
-    return u32(frac)
+    return u32((u64(fraction) * 1_000_000_000) / (1 << 32))
 }
 
 fn nano_to_fraction(nanoseconds u32) u32 {
-    frac := (f64(nanoseconds) / 1_000_000_000.0) * f64(1 << 32)
-    return u32(frac)
+    return u32((u64(nanoseconds) * (1 << 32)) / 1_000_000_000)
 }
 
 pub struct OscColor {
