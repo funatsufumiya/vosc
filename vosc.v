@@ -357,3 +357,41 @@ pub fn read_arguments(payload []u8, type_tags string, i int, j int, depth int) !
     }
     return args, idx, tag_idx
 }
+
+// Parse the given data into an OscMessage object.
+// Returns content and next index
+pub fn read_message(payload []u8, i int) !(OscMessage, int) {
+    mut idx := i
+    if idx >= payload.len {
+        return error('Message is too small')
+    }
+    if payload[idx] != `/` {
+        return error('Invalid address, no `/` in the beginning')
+    }
+    // Read address
+    address, next_idx := read_padded_str(payload, idx) or { return err }
+    idx = next_idx
+    if idx >= payload.len {
+        return OscMessage{
+            address: address
+            args: []
+        }, idx
+    }
+    // Read type tags
+    type_tags, next_idx2 := read_padded_str(payload, idx) or { return err }
+    idx = next_idx2
+    // Parse arguments
+    args, final_idx, _ := read_arguments(payload, type_tags, idx, 0, 0) or { return err }
+    idx = final_idx
+    return OscMessage{
+        address: address
+        args: args
+    }, idx
+}
+
+// Parse the given data into an OscMessage object.
+// Returns error if the data is invalid.
+pub fn parse_message(payload []u8) !OscMessage {
+    msg, _ := read_message(payload, 0)!
+    return msg
+}
