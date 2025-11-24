@@ -49,6 +49,11 @@ pub mut:
     a u8
 }
 
+pub struct OscBlob {
+pub mut:
+    blob []u8
+}
+
 pub struct OscMidi {
 pub mut:
     port_id u8
@@ -67,7 +72,7 @@ pub struct OscInfValue {}
 
 type OscValue =
     int | f32 | f64 | string | bool
-    | []u8 | u8 | rune | OscBigIntValue
+    | OscBlob | rune | OscBigIntValue
     | OscTime | OscColor | OscMidi
     | []OscValue | OscNilValue | OscInfValue
 
@@ -290,7 +295,7 @@ pub fn read_arguments(payload []u8, type_tags string, i int, j int, depth int) !
                 }
                 val := payload[idx..idx+length]
                 idx += padded4(length)
-                args << val
+                args << OscBlob{blob: val}
             }
             `T` {
                 args << true
@@ -394,4 +399,56 @@ pub fn read_message(payload []u8, i int) !(OscMessage, int) {
 pub fn parse_message(payload []u8) !OscMessage {
     msg, _ := read_message(payload, 0)!
     return msg
+}
+
+// Add type tags to buffer (OSC format)
+pub fn add_tags(mut buffer []u8, args []OscValue) {
+    for arg in args {
+        match arg {
+            []OscValue {
+                buffer << `[`
+                add_tags(mut buffer, arg)
+                buffer << `]`
+            }
+            else {
+                type_char := osc_type_tag(arg)
+                assert type_char.len == 1
+                buffer << type_char[0]
+            }
+        }
+    }
+}
+
+// Get OSC type tag character for OscValue
+fn osc_type_tag(arg OscValue) string {
+    match arg {
+        int { return 'i' }
+        f32 { return 'f' }
+        f64 { return 'd' }
+        string { return 's' }
+        bool {
+            if arg { return 'T' } else { return 'F' }
+        }
+        OscBlob { return 'b' }
+        rune { return 'c' }
+        OscBigIntValue { return 'h' }
+        OscTime { return 't' }
+        OscColor { return 'r' }
+        OscMidi { return 'm' }
+        []OscValue { return '[' }
+        OscNilValue { return 'N' }
+        OscInfValue { return 'I' }
+    }
+}
+
+// Add padded type tags to buffer (OSC format)
+pub fn add_padded_tags(mut buffer []u8, args []OscValue) {
+    before := buffer.len
+    buffer << `,`
+    add_tags(mut buffer, args)
+    len := buffer.len - before
+    rem := 4 - (len % 4)
+    for _ in 0 .. rem {
+        buffer << u8(0)
+    }
 }
