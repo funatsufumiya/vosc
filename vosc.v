@@ -127,3 +127,12 @@ pub fn to_osc_time(t time.Time) OscTime {
     result.frac = nano_to_fraction(u32(t.nanosecond))
     return result
 }
+
+// Pad the given length to the next multiple of 4.
+fn padded4(length int) int {
+  if length % 4 != 0 {
+    return length + (4 - length % 4)
+  } else {
+    return length
+  }
+}

@@ -52,3 +52,15 @@ fn test_to_time_and_to_osc_time() {
 	assert converted_zero.seconds == zero.seconds
 	assert math.abs(fraction_to_nano(converted_zero.frac) - fraction_to_nano(zero.frac)) <= 1
 }
+
+fn test_padded4() {
+    assert padded4(0) == 0
+    assert padded4(1) == 4
+    assert padded4(2) == 4
+    assert padded4(3) == 4
+    assert padded4(4) == 4
+    assert padded4(5) == 8
+    assert padded4(7) == 8
+    assert padded4(8) == 8
+    assert padded4(9) == 12
+}
