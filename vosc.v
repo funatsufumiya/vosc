@@ -102,3 +102,28 @@ pub fn to_osc_color(c u32, alpha u8) OscColor {
         a: alpha
     }
 }
+
+fn init_time(abs_unix_timestamp i64, nanosecond int) time.Time {
+    return time.unix_nanosecond(abs_unix_timestamp, nanosecond)
+}
+
+// NTP epoch constant
+const ntp_epoch = init_time(-2208988800, 0)
+
+// Convert OSC/NTP timestamp to Time object
+pub fn to_time(t OscTime) time.Time {
+    // This conversion is lossy. Round-trip will have a deviation of 1 nanosecond.
+    // NOTE: Does not handle the special case of an immediate time.
+    // You have to check using is_immediate yourself.
+    unix_seconds := i64(t.seconds) + ntp_epoch.unix()
+    nano := fraction_to_nano(t.frac)
+    return init_time(unix_seconds, int(nano))
+}
+
+// Convert Time object to OSC/NTP timestamp
+pub fn to_osc_time(t time.Time) OscTime {
+    mut result := OscTime{}
+    result.seconds = u32(t.unix() - ntp_epoch.unix())
+    result.frac = nano_to_fraction(u32(t.nanosecond))
+    return result
+}

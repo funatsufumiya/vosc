@@ -1,5 +1,7 @@
 module vosc
 
+import math
+
 fn test_nano_to_fraction_to_nano(){
 	want := u32(1_000_000_000)
 	fr := nano_to_fraction(want)
@@ -26,4 +28,27 @@ fn test_to_osc_color() {
 	assert osc_color.g == 0x34
 	assert osc_color.b == 0x56
 	assert osc_color.a == 128
+}
+
+fn test_to_time_and_to_osc_time() {
+	// Test round-trip conversion
+	orig := OscTime{
+		seconds: u32(123456789)
+		frac: nano_to_fraction(u32(987654321))
+	}
+	t := to_time(orig)
+	converted := to_osc_time(t)
+	assert converted.seconds == orig.seconds, 'seconds mismatch: ${converted.seconds} != ${orig.seconds}'
+	// Allow 1ns deviation due to lossy conversion
+	assert math.abs(fraction_to_nano(converted.frac) - fraction_to_nano(orig.frac)) <= 1, 'nanoseconds mismatch: ${fraction_to_nano(converted.frac)} != ${fraction_to_nano(orig.frac)}'
+
+	// Test with zero time
+	zero := OscTime{
+		seconds: u32(0)
+		frac: nano_to_fraction(u32(0))
+	}
+	t_zero := to_time(zero)
+	converted_zero := to_osc_time(t_zero)
+	assert converted_zero.seconds == zero.seconds
+	assert math.abs(fraction_to_nano(converted_zero.frac) - fraction_to_nano(zero.frac)) <= 1
 }
