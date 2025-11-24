@@ -3,7 +3,7 @@
 
 module vosc
 
-import gg
+// import gg
 import time
 
 // Types
