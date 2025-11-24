@@ -6,6 +6,8 @@ module vosc
 // import gg
 import time
 import encoding.binary
+import math
+import strings
 
 // Types
 
@@ -183,7 +185,7 @@ fn index_byte(s []u8, sep u8) int {
 }
 
 // Read a padded string from payload, updating index
-pub fn read_padded_str(payload []u8, i int) !([]u8, int) {
+pub fn read_padded_str(payload []u8, i int) !(string, int) {
     if i >= payload.len {
         return error('Not enough bytes to read string')
     }
@@ -193,8 +195,10 @@ pub fn read_padded_str(payload []u8, i int) !([]u8, int) {
         return error('Not enough bytes to read string')
     }
     result := buf[..len]
-    reti := i + padded4(len + 1) // len + 1 for the \0
-    return result, reti
+    next_index := i + padded4(len + 1) // len + 1 for the \0
+    mut builder := strings.new_builder(result.len)
+    builder.write(result)!
+    return builder.bytestr(), next_index
 }
 
 pub fn read_osc_time(payload []u8, i int) (OscTime, int) {
@@ -244,4 +248,111 @@ pub fn read_osc_midi(payload []u8, i int) !(OscMidi, int) {
     result.data1 = payload[i + 2]
     result.data2 = payload[i + 3]
     return result, i + 4
+}
+
+pub fn read_arguments(payload []u8, type_tags string, i int, j int, depth int) !([]OscValue, int, int) {
+    max_array_depth := 64
+    mut args := []OscValue{}
+    mut idx := i
+    mut tag_idx := j
+    for tag_idx < type_tags.len {
+        t := type_tags[tag_idx]
+        tag_idx++
+        match t {
+            `,` {
+                continue
+            }
+            `f` {
+                raw := binary.big_endian_u32_at(payload, idx)
+                val := math.f32_from_bits(raw)
+                idx += 4
+                args << val
+            }
+            `i` {
+                val := int(binary.big_endian_u32_at(payload, idx))
+                idx += 4
+                args << val
+            }
+            `s` {
+                str, next_idx := read_padded_str(payload, idx) or { return err }
+                idx = next_idx
+                args << str
+            }
+            `b` {
+                length := int(binary.big_endian_u32_at(payload, idx))
+                idx += 4
+                if length < 0 {
+                    return error('Payload length must be positive')
+                }
+                if idx + length > payload.len {
+                    return error('Not enough bytes to read blob')
+                }
+                val := payload[idx..idx+length]
+                idx += padded4(length)
+                args << val
+            }
+            `T` {
+                args << true
+            }
+            `F` {
+                args << false
+            }
+            `N` {
+                args << OscNilValue{}
+            }
+            `[` {
+                if depth > max_array_depth {
+                    return error('Too many nested arrays')
+                }
+                arr, new_idx, new_tag_idx := read_arguments(payload, type_tags, idx, tag_idx, depth + 1) or { return err }
+                idx = new_idx
+                tag_idx = new_tag_idx
+                args << arr
+            }
+            `]` {
+                if depth == 0 {
+                    return error('Unmatched `]`')
+                }
+                return args, idx, tag_idx
+            }
+            `t` {
+                val, next_idx := read_osc_time(payload, idx)
+                idx = next_idx
+                args << val
+            }
+            `h` {
+                val := i64(binary.big_endian_u64_at(payload, idx))
+                idx += 8
+                args << OscBigIntValue{ big_int_val: val }
+            }
+            `d` {
+                raw := binary.big_endian_u64_at(payload, idx)
+                val := math.f64_from_bits(raw)
+                idx += 8
+                args << val
+            }
+            `I` {
+                args << OscInfValue{}
+            }
+            `c` {
+                c := rune(binary.big_endian_u32_at(payload, idx))
+                idx += 4
+                args << c
+            }
+            `r` {
+                val, next_idx := read_osc_color(payload, idx) or { return err }
+                idx = next_idx
+                args << val
+            }
+            `m` {
+                val, next_idx := read_osc_midi(payload, idx) or { return err }
+                idx = next_idx
+                args << val
+            }
+            else {
+                continue
+            }
+        }
+    }
+    return args, idx, tag_idx
 }
