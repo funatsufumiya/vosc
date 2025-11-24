@@ -203,3 +203,19 @@ pub fn read_osc_time(payload []u8, i int) (OscTime, int) {
   result.frac = binary.big_endian_u32_at(payload, i + 4)
   return result, i + 8
 }
+
+// Add OscColor to buffer (OSC format)
+pub fn add_color(mut buffer []u8, val OscColor) {
+    buffer << val.r
+    buffer << val.g
+    buffer << val.b
+    buffer << val.a
+}
+
+// Add OscMidi to buffer (OSC format)
+pub fn add_midi(mut buffer []u8, val OscMidi) {
+    buffer << val.port_id
+    buffer << val.status
+    buffer << val.data1
+    buffer << val.data2
+}

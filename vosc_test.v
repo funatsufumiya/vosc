@@ -104,3 +104,29 @@ fn test_read_osc_time() {
     assert osc_time2.frac == 0x05060708
     assert next_index2 == 12
 }
+
+fn test_add_color() {
+    // Test add_color
+    mut buf := []u8{}
+    osc_color := OscColor{
+        r: 0x11
+        g: 0x22
+        b: 0x33
+        a: 0x44
+    }
+    add_color(mut buf, osc_color)
+    assert buf == [u8(0x11), 0x22, 0x33, 0x44], 'add_color failed: ${buf}'
+}
+
+fn test_add_midi() {
+    // Test add_midi
+    mut midi_buf := []u8{}
+    osc_midi := OscMidi{
+        port_id: 0x55
+        status: 0x66
+        data1: 0x77
+        data2: 0x88
+    }
+    add_midi(mut midi_buf, osc_midi)
+    assert midi_buf == [u8(0x55), 0x66, 0x77, 0x88], 'add_midi failed: ${midi_buf}'
+}
