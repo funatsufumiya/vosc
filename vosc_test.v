@@ -130,3 +130,55 @@ fn test_add_midi() {
     add_midi(mut midi_buf, osc_midi)
     assert midi_buf == [u8(0x55), 0x66, 0x77, 0x88], 'add_midi failed: ${midi_buf}'
 }
+
+fn test_read_osc_color() {
+    // Normal case
+    payload := [u8(0x10), 0x20, 0x30, 0x40]
+    osc_color, next_index := read_osc_color(payload, 0) or { panic(err.msg()) }
+    assert osc_color.r == 0x10
+    assert osc_color.g == 0x20
+    assert osc_color.b == 0x30
+    assert osc_color.a == 0x40
+    assert next_index == 4
+
+    // Offset case
+    payload2 := [u8(0), 0, 0, 0, 0x01, 0x02, 0x03, 0x04]
+    osc_color2, next_index2 := read_osc_color(payload2, 4) or { panic(err.msg()) }
+    assert osc_color2.r == 0x01
+    assert osc_color2.g == 0x02
+    assert osc_color2.b == 0x03
+    assert osc_color2.a == 0x04
+    assert next_index2 == 8
+
+    // Error case: not enough bytes
+    payload3 := [u8(1), 2, 3]
+	mut has_error := false
+    read_osc_color(payload3, 0) or { has_error = true }
+	assert has_error == true
+}
+
+fn test_read_osc_midi() {
+    // Normal case
+    payload := [u8(0x90), 0x80, 0x70, 0x60]
+    osc_midi, next_index := read_osc_midi(payload, 0) or { panic(err.msg()) }
+    assert osc_midi.port_id == 0x90
+    assert osc_midi.status == 0x80
+    assert osc_midi.data1 == 0x70
+    assert osc_midi.data2 == 0x60
+    assert next_index == 4
+
+    // Offset case
+    payload2 := [u8(0), 0, 0, 0, 0x01, 0x02, 0x03, 0x04]
+    osc_midi2, next_index2 := read_osc_midi(payload2, 4) or { panic(err.msg()) }
+    assert osc_midi2.port_id == 0x01
+    assert osc_midi2.status == 0x02
+    assert osc_midi2.data1 == 0x03
+    assert osc_midi2.data2 == 0x04
+    assert next_index2 == 8
+
+    // Error case: not enough bytes
+    payload3 := [u8(1), 2, 3]
+	mut has_error := false
+   	read_osc_midi(payload3, 0) or { has_error = true }
+	assert has_error == true
+}

@@ -219,3 +219,29 @@ pub fn add_midi(mut buffer []u8, val OscMidi) {
     buffer << val.data1
     buffer << val.data2
 }
+
+// Read OscColor from payload, updating index
+pub fn read_osc_color(payload []u8, i int) !(OscColor, int) {
+    if i + 4 > payload.len {
+        return error('Not enough bytes to read color')
+    }
+    mut result := OscColor{}
+    result.r = payload[i]
+    result.g = payload[i + 1]
+    result.b = payload[i + 2]
+    result.a = payload[i + 3]
+    return result, i + 4
+}
+
+// Read OscMidi from payload, updating index
+pub fn read_osc_midi(payload []u8, i int) !(OscMidi, int) {
+    if i + 4 > payload.len {
+        return error('Not enough bytes to read midi')
+    }
+    mut result := OscMidi{}
+    result.port_id = payload[i]
+    result.status = payload[i + 1]
+    result.data1 = payload[i + 2]
+    result.data2 = payload[i + 3]
+    return result, i + 4
+}
