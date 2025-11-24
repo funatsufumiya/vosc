@@ -8,6 +8,15 @@ import time
 
 // Types
 
+struct OscParseError {
+    Error
+    reason string
+}
+
+fn (err OscParseError) msg() string {
+    return 'Failed to open path: ${err.reason}'
+}
+
 type Color = u32
 
 pub struct OscTime {
@@ -135,4 +144,54 @@ fn padded4(length int) int {
   } else {
     return length
   }
+}
+
+// Add a padded string to buffer (OSC format)
+pub fn add_padded_str(mut buffer []u8, val string) {
+    buffer << val.bytes()
+    // Always pad with at least one '\0'
+    rem := 4 - (val.len % 4)
+    for _ in 0 .. rem {
+        buffer << u8(0)
+    }
+}
+
+// Add a blob to buffer (OSC format)
+pub fn add_blob(mut buffer []u8, val []u8) {
+    for c in val {
+        buffer << c
+    }
+    // No 0 terminator needed for blob
+    if val.len % 4 != 0 {
+        rem := 4 - (val.len % 4)
+        for _ in 0 .. rem {
+            buffer << u8(0)
+        }
+    }
+}
+
+fn index_byte(s []u8, sep u8) int {
+    for i, c in s {
+        if c == sep {
+            // out = s[..i]
+            return i
+        }
+    }
+    // out = []
+    return -1
+}
+
+// Read a padded string from payload, updating index
+pub fn read_padded_str(payload []u8, i int) !([]u8, int) {
+    if i >= payload.len {
+        return OscParseError{reason: 'Not enough bytes to read string'}
+    }
+    buf := payload[i..]
+    len := index_byte(buf, `\0`)
+    if len == -1 {
+        return OscParseError{reason: 'Not enough bytes to read string'}
+    }
+    result := buf[..len]
+    reti := i + padded4(len + 1) // len + 1 for the \0
+    return result, reti
 }

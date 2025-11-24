@@ -64,3 +64,20 @@ fn test_padded4() {
     assert padded4(8) == 8
     assert padded4(9) == 12
 }
+
+fn test_index_byte() {
+    // Basic case: separator found
+    assert index_byte([u8(1), 2, 3, 4], u8(3)) == 2
+    // Separator at start
+    assert index_byte([u8(9), 2, 3], u8(9)) == 0
+    // Separator at end
+    assert index_byte([u8(1), 2, 3], u8(3)) == 2
+    // Separator not found
+    assert index_byte([u8(1), 2, 3], u8(4)) == -1
+    // Empty slice
+    assert index_byte([]u8{}, u8(1)) == -1
+    // Multiple separators, returns first
+    assert index_byte([u8(5), 6, 5, 7], u8(5)) == 0
+    // Separator is zero
+    assert index_byte([u8(1), 0, 2], u8(0)) == 1
+}
