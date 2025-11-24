@@ -3,9 +3,12 @@
 
 module vosc
 
+import gg
 import time
 
 // Types
+
+type Color = u32
 
 pub struct OscTime {
 pub mut:
@@ -57,4 +60,42 @@ pub struct OscMessage {
 pub mut:
     address string
     args []OscValue
+}
+
+// // Add time to buffer (big-endian)
+// pub fn add_time(mut buffer string, time OscTime) {
+//     buffer += be32(time.seconds)
+//     buffer += be32(time.frac)
+// }
+
+// Check if OscTime is immediate
+pub fn is_immediate(t OscTime) bool {
+    return t == osc_time_immediate
+}
+
+// Convert OscColor to Color
+pub fn to_color(c OscColor) Color {
+    return u32(c.r) << 16 | u32(c.g) << 8 | u32(c.b)
+}
+
+/// alpha becomes 255
+fn extract_rgb(a Color) OscColor {
+    // Extracts the red/green/blue components of the color `a`.
+    mut result := OscColor{}
+    result.r = u8((a >> 16) & 0xff)
+    result.g = u8((a >> 8) & 0xff)
+    result.b = u8(a & 0xff)
+    result.a = 255
+    return result
+}
+
+// Convert gg.Color to OscColor with alpha
+pub fn to_osc_color(c u32, alpha u8) OscColor {
+    rgb := extract_rgb(c)
+    return OscColor{
+        r: rgb.r
+        g: rgb.g
+        b: rgb.b
+        a: alpha
+    }
 }
