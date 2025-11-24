@@ -23,4 +23,4 @@ $ v test .
 
 see [LICENSE](./LICENSE).
 
-Please note that the original [Okabintaro/nosc](https://github.com/Okabintaro/nosc) contains codes by [treeform](https://github.com/treeform) codes, see [LICENSE.treeform](./LICENSE.treeform) and [original README](https://github.com/Okabintaro/nosc/blob/master/README.md).
+Please note that the original [Okabintaro/nosc](https://github.com/Okabintaro/nosc) contains codes by [treeform](https://github.com/treeform) codes, see [LICENSE_treeform](./LICENSE_treeform) and [original README](https://github.com/Okabintaro/nosc/blob/master/README.md).
