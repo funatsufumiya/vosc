@@ -452,3 +452,63 @@ pub fn add_padded_tags(mut buffer []u8, args []OscValue) {
         buffer << u8(0)
     }
 }
+
+// Add arguments to buffer (OSC format)
+pub fn add_arguments(mut buffer []u8, args []OscValue) {
+    for arg in args {
+        match arg {
+            int {
+                buffer << binary.big_endian_get_u32(u32(arg))
+            }
+            f32 {
+                buffer << binary.big_endian_get_u32(math.f32_bits(arg))
+            }
+            f64 {
+                buffer << binary.big_endian_get_u64(math.f64_bits(arg))
+            }
+            string {
+                add_padded_str(mut buffer, arg)
+            }
+            OscBlob {
+                buffer << binary.big_endian_get_u32(u32(arg.blob.len))
+                add_blob(mut buffer, arg.blob)
+            }
+            bool, OscNilValue, OscInfValue {
+                // No data for these types
+            }
+            []OscValue {
+                add_arguments(mut buffer, arg)
+            }
+            OscTime {
+                buffer << binary.big_endian_get_u32(arg.seconds)
+                buffer << binary.big_endian_get_u32(arg.frac)
+            }
+            OscBigIntValue {
+                buffer << binary.big_endian_get_u64(u64(arg.big_int_val))
+            }
+            OscColor {
+                add_color(mut buffer, arg)
+            }
+            OscMidi {
+                add_midi(mut buffer, arg)
+            }
+            rune {
+                buffer << binary.big_endian_get_u32(u32(arg))
+            }
+        }
+    }
+}
+
+// Write the given OscMessage to a buffer (inverse of read_message)
+pub fn add_message(mut buffer []u8, msg OscMessage) {
+    add_padded_str(mut buffer, msg.address)
+    add_padded_tags(mut buffer, msg.args)
+    add_arguments(mut buffer, msg.args)
+}
+
+// Serialize the given OscMessage to a new buffer and return it
+pub fn dgram(msg OscMessage) []u8 {
+    mut dgram := []u8{cap: 512}
+    add_message(mut dgram, msg)
+    return dgram
+}
