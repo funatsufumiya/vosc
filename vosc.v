@@ -50,11 +50,14 @@ pub mut:
     big_int_val i64
 }
 
+pub struct OscNilValue {}
+pub struct OscInfValue {}
+
 type OscValue =
-    int | f32 | f64 | string
+    int | f32 | f64 | string | bool
     | []u8 | u8 | rune | OscBigIntValue
     | OscTime | OscColor | OscMidi
-    | []OscValue
+    | []OscValue | OscNilValue | OscInfValue
 
 pub struct OscMessage {
 pub mut:
