@@ -81,3 +81,26 @@ fn test_index_byte() {
     // Separator is zero
     assert index_byte([u8(1), 0, 2], u8(0)) == 1
 }
+
+fn test_read_osc_time() {
+    // Prepare payload: seconds = 0x12345678, frac = 0x9abcdef0 (big-endian)
+    payload := [
+        u8(0x12), 0x34, 0x56, 0x78, // seconds
+        0x9a, 0xbc, 0xde, 0xf0      // frac
+    ]
+    osc_time, next_index := read_osc_time(payload, 0)
+    assert osc_time.seconds == 0x12345678
+    assert osc_time.frac == 0x9abcdef0
+    assert next_index == 8
+
+    // Test with offset
+    payload2 := [
+        u8(0), 0, 0, 0, // padding
+        0x01, 0x02, 0x03, 0x04, // seconds
+        0x05, 0x06, 0x07, 0x08  // frac
+    ]
+    osc_time2, next_index2 := read_osc_time(payload2, 4)
+    assert osc_time2.seconds == 0x01020304
+    assert osc_time2.frac == 0x05060708
+    assert next_index2 == 12
+}

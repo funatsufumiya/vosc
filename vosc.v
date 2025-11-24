@@ -5,17 +5,18 @@ module vosc
 
 // import gg
 import time
+import encoding.binary
 
 // Types
 
-struct OscParseError {
-    Error
-    reason string
-}
+// struct OscParseError {
+//     Error
+//     reason string
+// }
 
-fn (err OscParseError) msg() string {
-    return 'Failed to open path: ${err.reason}'
-}
+// fn (err OscParseError) msg() string {
+//     return 'Failed to open path: ${err.reason}'
+// }
 
 type Color = u32
 
@@ -184,14 +185,21 @@ fn index_byte(s []u8, sep u8) int {
 // Read a padded string from payload, updating index
 pub fn read_padded_str(payload []u8, i int) !([]u8, int) {
     if i >= payload.len {
-        return OscParseError{reason: 'Not enough bytes to read string'}
+        return error('Not enough bytes to read string')
     }
     buf := payload[i..]
     len := index_byte(buf, `\0`)
     if len == -1 {
-        return OscParseError{reason: 'Not enough bytes to read string'}
+        return error('Not enough bytes to read string')
     }
     result := buf[..len]
     reti := i + padded4(len + 1) // len + 1 for the \0
     return result, reti
+}
+
+pub fn read_osc_time(payload []u8, i int) (OscTime, int) {
+  mut result := OscTime{}
+  result.seconds = binary.big_endian_u32_at(payload, i)
+  result.frac = binary.big_endian_u32_at(payload, i + 4)
+  return result, i + 8
 }
