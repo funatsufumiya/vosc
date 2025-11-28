@@ -1,5 +1,5 @@
 import vosc
 
 fn main() {
-	println("hello")
+	println("[Error] Sorry, this example is work in progress...")
 }
