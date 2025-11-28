@@ -1,7 +1,7 @@
 # vosc
 
 > [!WARNING]
-> Work in progress. Not ready for use!
+> Work in progress.
 
 A pure V implementation of the [OSC(Open Sound Control) 1.0](https://opensoundcontrol.stanford.edu/spec-1_0.html) protocol.
 

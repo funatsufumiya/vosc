@@ -182,3 +182,36 @@ fn test_read_osc_midi() {
    	read_osc_midi(payload3, 0) or { has_error = true }
 	assert has_error == true
 }
+
+fn test_vosc_msg_init(){
+    msg := vosc.OscMessage{}
+    assert true
+}
+
+fn test_vosc_msg_to_str(){
+    mut msg := vosc.OscMessage{}
+    msg.address = "/hello"
+    s := msg.str()
+    assert s.contains("/hello")
+}
+
+fn test_vosc_msg_to_bytes(){
+    mut msg := vosc.OscMessage{}
+    msg.address = "/hello"
+
+    mut buf := []u8{cap: 128}
+    vosc.add_message(mut buf, msg)
+    
+    assert buf.len == 12
+}
+
+fn test_vosc_msg_to_bytes_with_args(){
+    mut msg := vosc.OscMessage{}
+    msg.address = "/hello"
+    msg.args = [1, f32(2.0), "world"]
+
+    mut buf := []u8{cap: 128}
+    vosc.add_message(mut buf, msg)
+    
+    assert buf.len == 32
+}
