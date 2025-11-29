@@ -6,9 +6,9 @@ import vosc
 fn main() {
 	raddr := '0.0.0.0:9000'
 	mut receiver := net.listen_udp(raddr)!
-  defer {
-    receiver.close() or { panic(err) }
-  }
+	defer {
+		receiver.close() or { panic(err) }
+	}
 	println('OSC listening to ${raddr}')
 
 	mut buf := []u8{len: 2048}
