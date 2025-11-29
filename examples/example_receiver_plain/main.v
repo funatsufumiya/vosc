@@ -13,7 +13,7 @@ fn main() {
 
 	mut buf := []u8{len: 2048}
 	for {
-		len, _ := receiver.read(mut buf) or { continue }
+		_, _ := receiver.read(mut buf) or { continue }
 
 		packet := vosc.read_packet(buf)!
 
@@ -21,15 +21,15 @@ fn main() {
 
 		if packet.kind == .message {
 			msg := packet.msg
-			print(msg)
+			println(msg)
 		} else if packet.kind == .bundle {
 			bundle := packet.bundle
 			t := vosc.to_time(bundle.time)
-			print(t)
+			println(t)
 			for pac in bundle.contents {
 				if pac.kind == .message {
 					msg := pac.msg
-					print(msg)
+					println(msg)
 				}
 			}
 		}

@@ -36,13 +36,13 @@ fn main() {
 }
 ```
 
-### Receiver
+### Receiver (using filter)
 
-see [receiver example](./examples/example_receiver/main.v).
+#### filter messages
+
+[code](./examples/example_receiver_filter_msg/main.v)
 
 ```v
-module main
-
 import net
 import vosc
 
@@ -56,29 +56,56 @@ fn main() {
 
 	mut buf := []u8{len: 2048}
 	for {
-		len, _ := receiver.read(mut buf) or { continue }
+		receiver.read(mut buf) or { continue }
 
 		packet := vosc.read_packet(buf)!
 
-		// print(packet)
-
-		if packet.kind == .message {
-			msg := packet.msg
-			print(msg)
-		} else if packet.kind == .bundle {
-			bundle := packet.bundle
-			t := vosc.to_time(bundle.time)
-			print(t)
-			for pac in bundle.contents {
-				if pac.kind == .message {
-					msg := pac.msg
-					print(msg)
-				}
-			}
-		}
+        // receive all messages
+		vosc.filter_messages(packet, fn(msg &vosc.OscMessage){
+			println(msg.address)
+			println(msg.args)
+		})
 	}
 }
 ```
+
+#### filter addresses
+
+[code](./examples/example_receiver_filter_addr/main.v)
+
+```v
+import net
+import vosc
+
+fn main() {
+	raddr := '0.0.0.0:9000'
+	mut receiver := net.listen_udp(raddr)!
+	defer {
+		receiver.close() or { panic(err) }
+	}
+	println('OSC listening to ${raddr}')
+
+	mut buf := []u8{len: 2048}
+	for {
+		receiver.read(mut buf) or { continue }
+
+		packet := vosc.read_packet(buf)!
+
+		vosc.filter_address(packet, "/hello", fn(msg &vosc.OscMessage){
+			println(msg.address)
+			println(msg.args)
+		})
+		vosc.filter_address(packet, "/test", fn(msg &vosc.OscMessage){
+			println(msg.address)
+			println(msg.args)
+		})
+	}
+}
+```
+
+### Receiver (plain)
+
+see [receiver (plain) example](./examples/example_receiver_plain/main.v).
 
 ## Install
 
