@@ -7,6 +7,10 @@ A pure V implementation of the [OSC(Open Sound Control) 1.0](https://opensoundco
 
 Ported from [Okabintaro/nosc](https://github.com/Okabintaro/nosc)
 
+## Usage
+
+see [sender example](./examples/example_sender/main.v) and [receiver example](./examples/example_receiver/main.v).
+
 ## Install
 
 ```bash
